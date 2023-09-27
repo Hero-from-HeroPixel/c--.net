@@ -1,10 +1,6 @@
-﻿using System.Data;
-using System.Data.Common;
-using System.Globalization;
-using Dapper;
+﻿using System.Globalization;
 using HelloWorld.Data;
 using HelloWorld.Models;
-using Microsoft.Data.SqlClient;
 
 
 internal class Program
@@ -12,7 +8,8 @@ internal class Program
     private static void Main(string[] args)
     {
 
-        DataContextDapper dapper = new DataContextDapper();
+        DataContextDapper dapper = new();
+        DataContextEF entityFramework = new();
 
         string sqlCommand = "SELECT GETDATE()";
 
@@ -29,6 +26,10 @@ internal class Program
             Price = 15850.00m,
             VideoCard = "RTX 2060"
         };
+
+        entityFramework.Add(myComputer);
+        entityFramework.SaveChanges();
+
 
         string sql = @"INSERT INTO TutorialAppSchema.Computer (
             Motherboard,
@@ -62,16 +63,36 @@ internal class Program
         from TutorialAppSchema.Computer";
 
         IEnumerable<Computer> computers = dapper.LoadData<Computer>(sqlSelect);
+        IEnumerable<Computer>? computersEf = entityFramework.Computer?.ToList<Computer>();
 
-        foreach (Computer computer in computers)
+        if (computersEf != null)
         {
-            Console.WriteLine("'" + myComputer.Motherboard
-                + "','" + myComputer.HasWifi
-                + "','" + myComputer.HasLTE
-                + "','" + myComputer.ReleaseDate
-                + "','" + myComputer.Price.ToString("0.00", CultureInfo.InvariantCulture)
-                + "','" + myComputer.VideoCard
-            + "'");
+
+            foreach (Computer computer in computersEf)
+            {
+                Console.WriteLine("'" + computer.ComputerId
+                    + "','" + computer.Motherboard
+                    + "','" + computer.HasWifi
+                    + "','" + computer.HasLTE
+                    + "','" + computer.ReleaseDate
+                    + "','" + computer.Price.ToString("0.00", CultureInfo.InvariantCulture)
+                    + "','" + computer.VideoCard
+                + "'");
+            }
+        }
+        else
+        {
+            foreach (Computer computer in computers)
+            {
+                Console.WriteLine("'" + computer.ComputerId
+                    + "','" + computer.Motherboard
+                    + "','" + computer.HasWifi
+                    + "','" + computer.HasLTE
+                    + "','" + computer.ReleaseDate
+                    + "','" + computer.Price.ToString("0.00", CultureInfo.InvariantCulture)
+                    + "','" + computer.VideoCard
+                + "'");
+            }
         }
 
     }

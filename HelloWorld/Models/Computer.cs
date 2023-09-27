@@ -3,12 +3,13 @@ namespace HelloWorld.Models
     public class Computer
     {
 
+        public int ComputerId { get; set; }
         public string Motherboard { get; set; }
         /************ Under the hood */
         // private string _motherboard;
         // private string Motherboard {get{ return _motherboard; } set{ _motherboard = value; }}
 
-        public int CPUCores { get; set; }
+        public int? CPUCores { get; set; } = 0;
 
         public bool HasWifi { get; set; }
 
@@ -23,6 +24,7 @@ namespace HelloWorld.Models
         /***** To ways of default values */
         public Computer()
         {
+            CPUCores ??= 0;
             Motherboard ??= "";
         }
     }
