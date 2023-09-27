@@ -1,10 +1,20 @@
-﻿// See https://aka.ms/new-console-template for more information
-string[] myStringArray = new string[1];
+﻿using HelloWorld.Models;
 
-myStringArray[0] = "Guac";
-Console.WriteLine(myStringArray[0]);
-Console.WriteLine(myStringArray[1]);
 
-Dictionary<string, string[]> myGroceryDictionary = new Dictionary<string, string[]>{
-    {"Dairy" , new string[]{"Cheese", "Milk"}}
-};
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Computer myComputer = new Computer()
+        {
+            Motherboard = "B450",
+            HasWifi = true,
+            HasLTE = false,
+            ReleaseDate = DateTime.Now,
+            Price = 15850.00m,
+            VideoCard = "RTX 2060"
+        };
+
+    }
+
+}
