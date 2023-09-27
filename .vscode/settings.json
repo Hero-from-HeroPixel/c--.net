@@ -1,0 +1,10 @@
+{
+	"editor.defaultFormatter": "ms-dotnettools.csdevkit",
+	"editor.formatOnSave": true,
+	"editor.formatOnPaste": true,
+	"cSpell.autoFormatConfigFile": true,
+	"editor.formatOnType": true,
+	"[csharp]": {
+		"editor.defaultFormatter": "ms-dotnettools.csharp"
+	}
+}
