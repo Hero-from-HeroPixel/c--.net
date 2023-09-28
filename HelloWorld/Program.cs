@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using HelloWorld.Data;
 using HelloWorld.Models;
+using Microsoft.Extensions.Configuration;
 
 
 internal class Program
@@ -8,8 +9,12 @@ internal class Program
     private static void Main(string[] args)
     {
 
-        DataContextDapper dapper = new();
-        DataContextEF entityFramework = new();
+        IConfiguration configuration = new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json")
+        .Build();
+
+        DataContextDapper dapper = new(configuration);
+        DataContextEF entityFramework = new(configuration);
 
         string sqlCommand = "SELECT GETDATE()";
 
