@@ -1,0 +1,59 @@
+
+        INSERT INTO TutorialAppSchema.Computer (
+            Motherboard,
+            HasWifi,
+            HasLTE,
+            ReleaseDate,
+            Price,
+            VideoCard  
+        ) Values ('B450','True','False','2023/09/28 12:25:22','15850.00','RTX 2060') 
+
+        INSERT INTO TutorialAppSchema.Computer (
+            Motherboard,
+            HasWifi,
+            HasLTE,
+            ReleaseDate,
+            Price,
+            VideoCard  
+        ) Values ('B450','True','False','2023/09/28 12:25:22','15850.00','RTX 2060') 
+
+
+        INSERT INTO TutorialAppSchema.Computer (
+            Motherboard,
+            HasWifi,
+            HasLTE,
+            ReleaseDate,
+            Price,
+            VideoCard  
+        ) Values ('B450','True','False','2023/09/28 12:25:56','15850.00','RTX 2060') 
+
+
+INSERT INTO TutorialAppSchema.Computer (
+            Motherboard,
+            HasWifi,
+            HasLTE,
+            ReleaseDate,
+            Price,
+            VideoCard  
+        ) Values ('B450','True','False','2023/09/28 12:26:53','15850.00','RTX 2060') 
+
+
+INSERT INTO TutorialAppSchema.Computer (
+            Motherboard,
+            HasWifi,
+            HasLTE,
+            ReleaseDate,
+            Price,
+            VideoCard  
+        ) Values ('B450','True','False','2023/09/28 12:28:29','15850.00','RTX 2060') 
+
+
+INSERT INTO TutorialAppSchema.Computer (
+            Motherboard,
+            HasWifi,
+            HasLTE,
+            ReleaseDate,
+            Price,
+            VideoCard  
+        ) Values ('B450','True','False','2023/09/28 12:29:21','15850.00','RTX 2060') 
+
