@@ -7,17 +7,23 @@ namespace DotNetApi.Controllers;
 public class UserController : ControllerBase
 {
 
-
-    private readonly ILogger<WeatherForecastController> _logger;
-
-    public UserController(ILogger<WeatherForecastController> logger)
+    DataContextDapper _dapper;
+    public UserController(IConfiguration config)
     {
-        _logger = logger;
+        _dapper = new DataContextDapper(config);
     }
 
-    [HttpGet]
-    public IEnumerable<WeatherForecast> Get()
+    [HttpGet("TestConnection")]
+    public DateTime TestConnection()
     {
+        return _dapper.LoadDataSingle<DateTime>("SELECT GETDATE()");
+    }
+
+    [HttpGet("GetUsers/{testValue}")]
+    // public IEnumerable<User> GetUsers()
+    public string[] GetUsers(string testValue)
+    {
+        return new string[] { "user1", "user2", testValue };
         // return Enumerable.Range(1, 5).Select(index => new WeatherForecast
         // {
         //     Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
