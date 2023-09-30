@@ -1,9 +1,9 @@
-namespace DotNetApi
+namespace DotNetApi.Models
 {
     public partial class UserSalary
     {
         public int UserId { get; set; }
-        public string Salary { get; set; } = "";
-        public string AvgSalary { get; set; } = "";
+        public decimal Salary { get; set; }
+        public decimal AvgSalary { get; set; }
     }
 }
