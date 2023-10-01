@@ -4,7 +4,6 @@ using System.Text;
 using DotnetAPI.Dto;
 using DotNetApi;
 using DotNetApi.Data;
-using DotNetApi.Models;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -71,9 +70,25 @@ namespace DotnetAPI.Controllers
                     if (_dapper.ExecuteSqlWithParams(sqlAddAuth, sqlParameters))
                     {
 
-                        return Ok();
+                        string sqlAddUser = @"
+                                    INSERT INTO TutorialAppSchema.Users(
+                                        [FirstName],
+                                        [LastName],
+                                        [Email],
+                                        [Gender]
+                                    ) VALUES (" +
+                                    "'" + user.FirstName +
+                                    "', '" + user.LastName +
+                                    "', '" + user.Email +
+                                    "', '" + user.Gender +
+                                "')";
+                        if (_dapper.ExecuteSql(sqlAddUser))
+                        {
+                            return Ok();
+                        }
+                        throw new Exception("Failed to add user details");
                     }
-                    throw new Exception("Failed to add user");
+                    throw new Exception("Failed to register user");
 
                 }
                 throw new Exception("User already exists");
