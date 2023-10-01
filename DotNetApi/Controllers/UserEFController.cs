@@ -1,186 +1,206 @@
 using AutoMapper;
+using DotnetAPI.Data;
 using DotNetApi.Data;
 using DotNetApi.Dto;
 using DotNetApi.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DotNetApi.Controllers;
+namespace DotnetAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
 public class UserEFController : ControllerBase
 {
-
-    // DataContextDapper _dapper;
-    DataContextEF _entityFramework;
-    IMapper _mapper;
-    public UserEFController(IConfiguration config)
+    readonly IUserRepository _userRepository;
+    readonly IMapper _mapper;
+    public UserEFController(IConfiguration config, IUserRepository userRepository)
     {
-        // _dapper = new DataContextDapper(config);
-        _entityFramework = new DataContextEF(config);
+        _userRepository = userRepository;
 
         _mapper = new Mapper(new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<UserDto, User>();
+            cfg.CreateMap<UserSalary, UserSalary>().ReverseMap();
+            cfg.CreateMap<UserJobInfo, UserJobInfo>().ReverseMap();
         }));
+
     }
-
-
-    // [HttpGet("TestConnection")]
-    // public DateTime TestConnection()
-    // {
-    //     return _dapper.LoadDataSingle<DateTime>("SELECT GETDATE()");
-    // }
 
     [HttpGet("GetUsers")]
     // public IEnumerable<User> GetUsers()
     public IEnumerable<User> GetUsers()
     {
-        IEnumerable<User> users = _entityFramework.Users.ToList<User>();
-        // string sql = @"
-        // SELECT 
-        //     [UserId],
-        //     [FirstName],
-        //     [LastName],
-        //     [Email],
-        //     [Gender],
-        //     [Active] 
-        // FROM TutorialAppSchema.Users 
-        // ";
-        // IEnumerable<User> users = _dapper.LoadData<User>(sql);
-        return users;
-
+        return _userRepository.GetUsers();
     }
+
     [HttpGet("GetSingleUser/{userId}")]
+    // public IEnumerable<User> GetUsers()
     public User GetSingleUser(int userId)
     {
-        User? user = _entityFramework.Users.Where<User>(u => u.UserId == userId)
-        .FirstOrDefault<User>();
-        // string sql = @"
-        // SELECT 
-        //     [UserId],
-        //     [FirstName],
-        //     [LastName],
-        //     [Email],
-        //     [Gender],
-        //     [Active] 
-        // FROM TutorialAppSchema.Users 
-        // WHERE UserId = " + userId.ToString()
-        // ;
-        // User user = _dapper.LoadDataSingle<User>(sql);
-        if (user != null)
-        {
-            return user;
-        }
-
-        throw new Exception("No Users found");
+        return _userRepository.GetSingleUser(userId);
     }
 
     [HttpPut("EditUser")]
     public IActionResult EditUser(User user)
     {
-        // string sql = @"
-        //     UPDATE TutorialAppSchema.Users 
-        //         SET [FirstName] = '" + user.FirstName +
-        //         "',[LastName]= '" + user.LastName +
-        //         "',[Email]= '" + user.Email +
-        //         "',[Gender]= '" + user.Gender +
-        //         "',[Active]= '" + user.Active +
-        //     "' WHERE UserId = " + user.UserId;
-        // if (_dapper.ExecuteSql(sql))
-        // {
-        //     return Ok();
-        // }
+        User? userDb = _userRepository.GetSingleUser(user.UserId);
 
-        User? userDb = _entityFramework.Users.Where<User>(u => u.UserId == user.UserId)
-            .FirstOrDefault<User>();
-        // string sql = @"
-        // SELECT 
-        //     [UserId],
-        //     [FirstName],
-        //     [LastName],
-        //     [Email],
-        //     [Gender],
-        //     [Active] 
-        // FROM TutorialAppSchema.Users 
-        // WHERE UserId = " + userId.ToString()
-        // ;
-        // User user = _dapper.LoadDataSingle<User>(sql);
         if (userDb != null)
         {
             userDb.Active = user.Active;
             userDb.FirstName = user.FirstName;
             userDb.LastName = user.LastName;
-            userDb.Gender = user.Gender;
             userDb.Email = user.Email;
-            if (_entityFramework.SaveChanges() > 0)
+            userDb.Gender = user.Gender;
+            if (_userRepository.SaveChanges())
             {
-
                 return Ok();
             }
-            throw new Exception("Failed to update user");
-        }
-        throw new Exception("Failed to get User");
 
+            throw new Exception("Failed to Update User");
+        }
+
+        throw new Exception("Failed to Get User");
     }
+
 
     [HttpPost("AddUser")]
     public IActionResult AddUser(UserDto user)
     {
         User userDb = _mapper.Map<User>(user);
 
-        // userDb.Active = user.Active;
-        // userDb.FirstName = user.FirstName;
-        // userDb.LastName = user.LastName;
-        // userDb.Gender = user.Gender;
-        // userDb.Email = user.Email;
-        _entityFramework.Add<User>(userDb);
-
-        if (_entityFramework.SaveChanges() > 0)
+        _userRepository.AddEntity(userDb);
+        if (_userRepository.SaveChanges())
         {
-
             return Ok();
         }
-        throw new Exception("Failed to Add user");
-        // string sql = @"
-        //     INSERT INTO TutorialAppSchema.Users (
-        //             [FirstName]," +
-        //             "[LastName]," +
-        //             "[Email]," +
-        //             "[Gender]," +
-        //             "[Active]" +
-        //     ") VALUES (" +
-        //         "'" + user.FirstName + "', " +
-        //         "'" + user.LastName + "', " +
-        //         "'" + user.Email + "', " +
-        //         "'" + user.Gender + "', " +
-        //         "'" + user.Active + "'" +
-        //         ")";
 
-        // Console.WriteLine(sql);
-        // if (_dapper.ExecuteSql(sql))
-        // {
-        //     return Ok();
-        // }
+        throw new Exception("Failed to Add User");
     }
 
-    [HttpDelete()]
+    [HttpDelete("DeleteUser/{userId}")]
     public IActionResult DeleteUser(int userId)
     {
-        User? userDb = _entityFramework.Users.Where<User>(u => u.UserId == userId)
-        .FirstOrDefault<User>();
+        User? userDb = _userRepository.GetSingleUser(userId);
 
         if (userDb != null)
         {
-            _entityFramework.Users.Remove(userDb);
-            // string sql = "DELETE FROM TutorialAppSchema.Users WHERE UserId = " + userId.ToString();
-            if (_entityFramework.SaveChanges() > 0)
+            _userRepository.RemoveEntity(userDb);
+            if (_userRepository.SaveChanges())
             {
                 return Ok();
             }
 
-            throw new Exception("Failed to delete user");
+            throw new Exception("Failed to Delete User");
         }
-        throw new Exception("No User found");
+
+        throw new Exception("Failed to Get User");
+    }
+
+    [HttpGet("UserSalary/{userId}")]
+    public UserSalary GetUserSalaryEF(int userId)
+    {
+        return _userRepository.GetSingleUserSalary(userId);
+    }
+
+    [HttpPost("UserSalary")]
+    public IActionResult PostUserSalaryEf(UserSalary userForInsert)
+    {
+        _userRepository.AddEntity(userForInsert);
+        if (_userRepository.SaveChanges())
+        {
+            return Ok();
+        }
+        throw new Exception("Adding UserSalary failed on save");
+    }
+
+
+    [HttpPut("UserSalary")]
+    public IActionResult PutUserSalaryEf(UserSalary userForUpdate)
+    {
+        UserSalary? userToUpdate = _userRepository.GetSingleUserSalary(userForUpdate.UserId);
+
+        if (userToUpdate != null)
+        {
+            _mapper.Map(userForUpdate, userToUpdate);
+            if (_userRepository.SaveChanges())
+            {
+                return Ok();
+            }
+            throw new Exception("Updating UserSalary failed on save");
+        }
+        throw new Exception("Failed to find UserSalary to Update");
+    }
+
+
+    [HttpDelete("UserSalary/{userId}")]
+    public IActionResult DeleteUserSalaryEf(int userId)
+    {
+        UserSalary? userToDelete = _userRepository.GetSingleUserSalary(userId);
+
+        if (userToDelete != null)
+        {
+            _userRepository.RemoveEntity(userToDelete);
+            if (_userRepository.SaveChanges())
+            {
+                return Ok();
+            }
+            throw new Exception("Deleting UserSalary failed on save");
+        }
+        throw new Exception("Failed to find UserSalary to delete");
+    }
+
+
+    [HttpGet("UserJobInfo/{userId}")]
+    public UserJobInfo GetUserJobInfoEF(int userId)
+    {
+        return _userRepository.GetSingleUserJobInfo(userId);
+    }
+
+    [HttpPost("UserJobInfo")]
+    public IActionResult PostUserJobInfoEf(UserJobInfo userForInsert)
+    {
+        _userRepository.AddEntity(userForInsert);
+        if (_userRepository.SaveChanges())
+        {
+            return Ok();
+        }
+        throw new Exception("Adding UserJobInfo failed on save");
+    }
+
+
+    [HttpPut("UserJobInfo")]
+    public IActionResult PutUserJobInfoEf(UserJobInfo userForUpdate)
+    {
+        UserJobInfo? userToUpdate = _userRepository.GetSingleUserJobInfo(userForUpdate.UserId);
+
+        if (userToUpdate != null)
+        {
+            _mapper.Map(userForUpdate, userToUpdate);
+            if (_userRepository.SaveChanges())
+            {
+                return Ok();
+            }
+            throw new Exception("Updating UserJobInfo failed on save");
+        }
+        throw new Exception("Failed to find UserJobInfo to Update");
+    }
+
+
+    [HttpDelete("UserJobInfo/{userId}")]
+    public IActionResult DeleteUserJobInfoEf(int userId)
+    {
+        UserJobInfo? userToDelete = _userRepository.GetSingleUserJobInfo(userId);
+
+        if (userToDelete != null)
+        {
+            _userRepository.RemoveEntity(userToDelete);
+            if (_userRepository.SaveChanges())
+            {
+                return Ok();
+            }
+            throw new Exception("Deleting UserJobInfo failed on save");
+        }
+        throw new Exception("Failed to find UserJobInfo to delete");
     }
 }

@@ -3,169 +3,252 @@ using DotNetApi.Dto;
 using DotNetApi.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DotNetApi.Controllers;
+namespace DotnetAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
 public class UserController : ControllerBase
 {
-
     DataContextDapper _dapper;
-    //DataContextEF _entityFramework;
     public UserController(IConfiguration config)
     {
         _dapper = new DataContextDapper(config);
-        // _entityFramework = new DataContextEF(config);
     }
 
-
-    // [HttpGet("TestConnection")]
-    // public DateTime TestConnection()
-    // {
-    //     return _dapper.LoadDataSingle<DateTime>("SELECT GETDATE()");
-    // }
+    [HttpGet("TestConnection")]
+    public DateTime TestConnection()
+    {
+        return _dapper.LoadDataSingle<DateTime>("SELECT GETDATE()");
+    }
 
     [HttpGet("GetUsers")]
     // public IEnumerable<User> GetUsers()
     public IEnumerable<User> GetUsers()
     {
-        //IEnumerable<User> users = _entityFramework.Users.ToList<User>();
         string sql = @"
-        SELECT 
-            [UserId],
-            [FirstName],
-            [LastName],
-            [Email],
-            [Gender],
-            [Active] 
-        FROM TutorialAppSchema.Users 
-        ";
+            SELECT [UserId],
+                [FirstName],
+                [LastName],
+                [Email],
+                [Gender],
+                [Active] 
+            FROM TutorialAppSchema.Users";
         IEnumerable<User> users = _dapper.LoadData<User>(sql);
         return users;
-
     }
+
     [HttpGet("GetSingleUser/{userId}")]
+    // public IEnumerable<User> GetUsers()
     public User GetSingleUser(int userId)
     {
-        //User? user = _entityFramework.Users.Where<User>(u => u.UserId == userId)
-        //.FirstOrDefault<User>();
         string sql = @"
-        SELECT 
-            [UserId],
-            [FirstName],
-            [LastName],
-            [Email],
-            [Gender],
-            [Active] 
-        FROM TutorialAppSchema.Users 
-        WHERE UserId = " + userId.ToString()
-        ;
+            SELECT [UserId],
+                [FirstName],
+                [LastName],
+                [Email],
+                [Gender],
+                [Active] 
+            FROM TutorialAppSchema.Users
+                WHERE UserId = " + userId.ToString(); //"7"
         User user = _dapper.LoadDataSingle<User>(sql);
-        if (user != null)
-        {
-            return user;
-        }
-
-        throw new Exception("No Users found");
+        return user;
     }
 
     [HttpPut("EditUser")]
     public IActionResult EditUser(User user)
     {
         string sql = @"
-            UPDATE TutorialAppSchema.Users 
-                SET [FirstName] = '" + user.FirstName +
-                "',[LastName]= '" + user.LastName +
-                "',[Email]= '" + user.Email +
-                "',[Gender]= '" + user.Gender +
-                "',[Active]= '" + user.Active +
+        UPDATE TutorialAppSchema.Users
+            SET [FirstName] = '" + user.FirstName +
+                "', [LastName] = '" + user.LastName +
+                "', [Email] = '" + user.Email +
+                "', [Gender] = '" + user.Gender +
+                "', [Active] = '" + user.Active +
             "' WHERE UserId = " + user.UserId;
+
+        Console.WriteLine(sql);
+
         if (_dapper.ExecuteSql(sql))
         {
             return Ok();
         }
 
-        // User? userDb = _entityFramework.Users.Where<User>(u => u.UserId == user.UserId)
-        //     .FirstOrDefault<User>();
-        // if (userDb != null)
-        // {
-        //     userDb.Active = user.Active;
-        //     userDb.FirstName = user.FirstName;
-        //     userDb.LastName = user.LastName;
-        //     userDb.Gender = user.Gender;
-        //     userDb.Email = user.Email;
-        //     if (_entityFramework.SaveChanges() > 0)
-        //     {
-
-        //         return Ok();
-        //     }
-        //     throw new Exception("Failed to update user");
-        // }
-        throw new Exception("Failed to Edit User");
-
+        throw new Exception("Failed to Update User");
     }
+
 
     [HttpPost("AddUser")]
     public IActionResult AddUser(UserDto user)
     {
-        // User userDb = new();
-        // userDb.Active = user.Active;
-        // userDb.FirstName = user.FirstName;
-        // userDb.LastName = user.LastName;
-        // userDb.Gender = user.Gender;
-        // userDb.Email = user.Email;
-        // _entityFramework.Add<User>(userDb);
-
-        // if (_entityFramework.SaveChanges() > 0)
-        // {
-
-        //     return Ok();
-        // }
-        // throw new Exception("Failed to Add user");
         string sql = @"
-            INSERT INTO TutorialAppSchema.Users (
-                    [FirstName]," +
-                    "[LastName]," +
-                    "[Email]," +
-                    "[Gender]," +
-                    "[Active]" +
-            ") VALUES (" +
-                "'" + user.FirstName + "', " +
-                "'" + user.LastName + "', " +
-                "'" + user.Email + "', " +
-                "'" + user.Gender + "', " +
-                "'" + user.Active + "'" +
-                ")";
+            INSERT INTO TutorialAppSchema.Users(
+                [FirstName],
+                [LastName],
+                [Email],
+                [Gender],
+                [Active]
+            ) VALUES (" +
+                "'" + user.FirstName +
+                "', '" + user.LastName +
+                "', '" + user.Email +
+                "', '" + user.Gender +
+                "', '" + user.Active +
+            "')";
 
         Console.WriteLine(sql);
+
         if (_dapper.ExecuteSql(sql))
         {
             return Ok();
         }
-        throw new Exception("Failed to Add user");
+
+        throw new Exception("Failed to Add User");
     }
 
-    [HttpDelete("DeleteUser")]
+    [HttpDelete("DeleteUser/{userId}")]
     public IActionResult DeleteUser(int userId)
     {
-        // User? userDb = _entityFramework.Users.Where<User>(u => u.UserId == userId)
-        // .FirstOrDefault<User>();
+        string sql = @"
+            DELETE FROM TutorialAppSchema.Users 
+                WHERE UserId = " + userId.ToString();
 
-        // if (userDb != null)
-        // {
-        //     _entityFramework.Users.Remove(userDb);
-        string sql = "DELETE FROM TutorialAppSchema.Users WHERE UserId = " + userId.ToString();
-        //     if (_entityFramework.SaveChanges() > 0)
-        //     {
-        //         return Ok();
-        //     }
+        Console.WriteLine(sql);
 
-        //     throw new Exception("Failed to delete user");
-        // }
         if (_dapper.ExecuteSql(sql))
         {
             return Ok();
         }
-        throw new Exception("No User found");
+
+        throw new Exception("Failed to Delete User");
+    }
+
+    [HttpGet("UserSalary/{userId}")]
+    public IEnumerable<UserSalary> GetUserSalary(int userId)
+    {
+        return _dapper.LoadData<UserSalary>(@"
+            SELECT UserSalary.UserId
+                    , UserSalary.Salary
+            FROM  TutorialAppSchema.UserSalary
+                WHERE UserId = " + userId.ToString());
+    }
+
+    [HttpPost("UserSalary")]
+    public IActionResult PostUserSalary(UserSalary userSalaryForInsert)
+    {
+        string sql = @"
+            INSERT INTO TutorialAppSchema.UserSalary (
+                UserId,
+                Salary
+            ) VALUES (" + userSalaryForInsert.UserId.ToString()
+                + ", " + userSalaryForInsert.Salary
+                + ")";
+
+        if (_dapper.ExecuteSqlWithRows(sql) > 0)
+        {
+            return Ok(userSalaryForInsert);
+        }
+        throw new Exception("Adding User Salary failed on save");
+    }
+
+    [HttpPut("UserSalary")]
+    public IActionResult PutUserSalary(UserSalary userSalaryForUpdate)
+    {
+        string sql = "UPDATE TutorialAppSchema.UserSalary SET Salary="
+            + userSalaryForUpdate.Salary
+            + " WHERE UserId=" + userSalaryForUpdate.UserId.ToString();
+
+        if (_dapper.ExecuteSql(sql))
+        {
+            return Ok(userSalaryForUpdate);
+        }
+        throw new Exception("Updating User Salary failed on save");
+    }
+
+    [HttpDelete("UserSalary/{userId}")]
+    public IActionResult DeleteUserSalary(int userId)
+    {
+        string sql = "DELETE FROM TutorialAppSchema.UserSalary WHERE UserId=" + userId.ToString();
+
+        if (_dapper.ExecuteSql(sql))
+        {
+            return Ok();
+        }
+        throw new Exception("Deleting User Salary failed on save");
+    }
+
+    [HttpGet("UserJobInfo/{userId}")]
+    public IEnumerable<UserJobInfo> GetUserJobInfo(int userId)
+    {
+        return _dapper.LoadData<UserJobInfo>(@"
+            SELECT  UserJobInfo.UserId
+                    , UserJobInfo.JobTitle
+                    , UserJobInfo.Department
+            FROM  TutorialAppSchema.UserJobInfo
+                WHERE UserId = " + userId.ToString());
+    }
+
+    [HttpPost("UserJobInfo")]
+    public IActionResult PostUserJobInfo(UserJobInfo userJobInfoForInsert)
+    {
+        string sql = @"
+            INSERT INTO TutorialAppSchema.UserJobInfo (
+                UserId,
+                Department,
+                JobTitle
+            ) VALUES (" + userJobInfoForInsert.UserId
+                + ", '" + userJobInfoForInsert.Department
+                + "', '" + userJobInfoForInsert.JobTitle
+                + "')";
+
+        if (_dapper.ExecuteSql(sql))
+        {
+            return Ok(userJobInfoForInsert);
+        }
+        throw new Exception("Adding User Job Info failed on save");
+    }
+
+    [HttpPut("UserJobInfo")]
+    public IActionResult PutUserJobInfo(UserJobInfo userJobInfoForUpdate)
+    {
+        string sql = "UPDATE TutorialAppSchema.UserJobInfo SET Department='"
+            + userJobInfoForUpdate.Department
+            + "', JobTitle='"
+            + userJobInfoForUpdate.JobTitle
+            + "' WHERE UserId=" + userJobInfoForUpdate.UserId.ToString();
+
+        if (_dapper.ExecuteSql(sql))
+        {
+            return Ok(userJobInfoForUpdate);
+        }
+        throw new Exception("Updating User Job Info failed on save");
+    }
+
+    // [HttpDelete("UserJobInfo/{userId}")]
+    // public IActionResult DeleteUserJobInfo(int userId)
+    // {
+    //     string sql = "DELETE FROM TutorialAppSchema.UserJobInfo  WHERE UserId=" + userId;
+
+    //     if (_dapper.ExecuteSql(sql))
+    //     {
+    //         return Ok();
+    //     }
+    //     throw new Exception("Deleting User Job Info failed on save");
+    // }
+
+    [HttpDelete("UserJobInfo/{userId}")]
+    public IActionResult DeleteUserJobInfo(int userId)
+    {
+        string sql = @"
+            DELETE FROM TutorialAppSchema.UserJobInfo 
+                WHERE UserId = " + userId.ToString();
+
+        Console.WriteLine(sql);
+
+        if (_dapper.ExecuteSql(sql))
+        {
+            return Ok();
+        }
+
+        throw new Exception("Failed to Delete User");
     }
 }
