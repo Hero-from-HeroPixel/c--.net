@@ -126,7 +126,8 @@ namespace DotnetAPI.Controllers
         {
 
             string sql = @"DELETE TutorialAppSchema.Posts 
-                        WHERE PostId = " + postId.ToString();
+                        WHERE PostId = " + postId.ToString() +
+                        "AND UserId = " + this.User.FindFirst("userId")?.Value;
 
             if (_dapper.ExecuteSql(sql))
             {
