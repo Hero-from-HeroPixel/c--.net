@@ -1,27 +1,34 @@
 using System.Data;
 using System.Security.Cryptography;
-using System.Text;
 using DotnetAPI.Dto;
+using DotnetAPI.Helpers;
 using DotNetApi;
 using DotNetApi.Data;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 
 namespace DotnetAPI.Controllers
 {
+
+    [Authorize]
+    [ApiController]
+    [Route("[controller]")]
     public class AuthController : ControllerBase
     {
 
         private readonly DataContextDapper _dapper;
-        private readonly IConfiguration _config;
+
+        private readonly AuthHelper _authHelper;
 
         public AuthController(IConfiguration config)
         {
             _dapper = new DataContextDapper(config);
-            _config = config;
+
+            _authHelper = new AuthHelper(config);
         }
 
+        [AllowAnonymous]
         [HttpPost("register")]
         public IActionResult Register(UserRegisterDto user)
         {
@@ -42,7 +49,7 @@ namespace DotnetAPI.Controllers
                         rng.GetNonZeroBytes(passwordSalt);
                     }
 
-                    byte[] passwordHash = GetPasswordHash(user.Password, passwordSalt);
+                    byte[] passwordHash = _authHelper.GetPasswordHash(user.Password, passwordSalt);
 
                     string sqlAddAuth = @"INSERT INTO TutorialAppSchema.Auth (
                                         [Email],
@@ -97,6 +104,7 @@ namespace DotnetAPI.Controllers
             throw new Exception("Passwords do not match");
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public IActionResult Login(UserLoginDto user)
         {
@@ -107,10 +115,24 @@ namespace DotnetAPI.Controllers
                                     [PasswordSalt]  
                                     FROM TutorialAppSchema.Auth WHERE Email = '"
                                     + user.Email + "'";
+
+            string userIdSql = @"
+                    SELECT UserId FROM TutorialAppSchema.Users WHERE Email = '" + user.Email + "'";
+
+            int userId;
+            try
+            {
+                userId = _dapper.LoadDataSingle<int>(userIdSql);
+            }
+            catch (System.Exception)
+            {
+                return StatusCode(401, "Password or Email does not match");
+            }
+
             UserForLoginConfirmationDto userConfirmation = _dapper.
             LoadDataSingle<UserForLoginConfirmationDto>(sqlForHashAndSalt);
 
-            byte[] passwordHash = GetPasswordHash(user.Password, userConfirmation.PasswordSalt);
+            byte[] passwordHash = _authHelper.GetPasswordHash(user.Password, userConfirmation.PasswordSalt);
 
             for (int i = 0; i < passwordHash.Length; i++)
             {
@@ -120,20 +142,22 @@ namespace DotnetAPI.Controllers
                 }
             }
 
-            return Ok();
+            return Ok(new Dictionary<string, string> {
+                {
+                    "token", _authHelper.CreateToken(userId)
+                }
+            });
         }
 
-        private byte[] GetPasswordHash(string password, byte[] passwordSalt)
+        [HttpGet("refreshToken")]
+        public string RefreshToken()
         {
-            string passwordSaltPlusString = _config.GetSection("AppSettings:PasswordKey").Value + Convert.ToBase64String(passwordSalt);
+            string sqlGetUserId = "SELECT UserId FROM TutorialAppSchema.Users WHERE userId = '" + User.FindFirst("userId")?.Value + "'";
 
-            return KeyDerivation.Pbkdf2(
-                password: password,
-                salt: Encoding.ASCII.GetBytes(passwordSaltPlusString),
-                prf: KeyDerivationPrf.HMACSHA256,
-                iterationCount: 100000,
-                numBytesRequested: 256 / 8
-            );
+            int userId = _dapper.LoadDataSingle<int>(sqlGetUserId);
+
+            return _authHelper.CreateToken(userId);
         }
+
     }
 }
