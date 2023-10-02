@@ -137,5 +137,21 @@ namespace DotnetAPI.Controllers
             throw new Exception("Failed to delete post");
         }
 
+        [HttpGet("PostBySearch/{SearchParam}")]
+        public IEnumerable<Post> PostBySearch(string param)
+        {
+            string sql = @" SELECT 
+                [PostId],
+                [UserId],
+                [PostTitle],
+                [PostContent],
+                [PostCreated],
+                [PostUpdated] 
+                FROM [TutorialAppSchema].[Posts]
+                WHERE PostId =" + this.User.FindFirst("userId")?.Value;
+
+
+            return _dapper.LoadData<Post>(sql);
+        }
     }
 }
