@@ -1,4 +1,5 @@
 using DotNetApi.Data;
+using DotNetApi.Dto;
 using DotNetApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +8,7 @@ namespace DotnetAPI.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("controller")]
+    [Route("[controller]")]
     public class PostController : ControllerBase
     {
         private readonly DataContextDapper _dapper;
@@ -30,7 +31,7 @@ namespace DotnetAPI.Controllers
             return _dapper.LoadData<Post>(sql);
         }
         [HttpGet("Posts/{postId}")]
-        public IEnumerable<Post> GetSinglePost(int postId)
+        public Post GetSinglePost(int postId)
         {
             string sql = @" SELECT 
                 [PostId],
@@ -41,10 +42,10 @@ namespace DotnetAPI.Controllers
                 [PostUpdated] 
                 FROM [TutorialAppSchema].[Posts]
                 WHERE PostId = '" + postId + "'";
-            return _dapper.LoadData<Post>(sql);
+            return _dapper.LoadDataSingle<Post>(sql);
         }
 
-        [HttpGet("Posts/{userId}")]
+        [HttpGet("Posts/PostByUser/{userId}")]
         public IEnumerable<Post> GetPostsByUser(int userId)
         {
             string sql = @" SELECT 
@@ -55,7 +56,7 @@ namespace DotnetAPI.Controllers
                 [PostCreated],
                 [PostUpdated] 
                 FROM [TutorialAppSchema].[Posts]
-                WHERE PostId = '" + userId + "'";
+                WHERE UserId = '" + userId + "'";
             return _dapper.LoadData<Post>(sql);
         }
 
@@ -70,8 +71,70 @@ namespace DotnetAPI.Controllers
                 [PostCreated],
                 [PostUpdated] 
                 FROM [TutorialAppSchema].[Posts]
-                WHERE PostId =" + User.FindFirst("userId")?.Value;
+                WHERE PostId =" + this.User.FindFirst("userId")?.Value;
+
+
             return _dapper.LoadData<Post>(sql);
         }
+
+        [HttpPost("Posts")]
+        public IActionResult AddPost(PostToAddDto postToAdd)
+        {
+            string sql = @" INSERT INTO TutorialAppSchema.Posts (
+                                    [UserId],
+                                    [PostTitle],
+                                    [PostContent],
+                                    [PostCreated],
+                                    [PostUpdated] 
+                                    ) VALUES (" +
+                                this.User.FindFirst("userId")?.Value +
+                                ",'" + postToAdd.PostTitle + "'" +
+                                ",'" + postToAdd.PostContent + "'" +
+                                ", GETDATE()" +
+                                ", GETDATE()" +
+                                ")";
+
+            if (_dapper.ExecuteSql(sql))
+            {
+                return Ok();
+            }
+
+            throw new Exception("Failed to create new post");
+        }
+
+        [HttpPut("Posts")]
+        public IActionResult Edit(PostToEditDto postToEdit)
+        {
+            string sql = @" UPDATE TutorialAppSchema.Posts 
+                                SET 
+                                PostContent = '" + postToEdit.PostContent + "'," +
+                                "PostTitle = '" + postToEdit.PostTitle + "'," +
+                                "PostUpdated = GETDATE()" +
+                                "WHERE PostId = " + postToEdit.PostId +
+                                "AND UserId = " + this.User.FindFirst("userId")?.Value;
+
+            if (_dapper.ExecuteSql(sql))
+            {
+                return Ok();
+            }
+
+            throw new Exception("Failed to create new post");
+        }
+
+        [HttpDelete("Post/{postId}")]
+        public IActionResult DeletePost(int postId)
+        {
+
+            string sql = @"DELETE TutorialAppSchema.Posts 
+                        WHERE PostId = " + postId.ToString();
+
+            if (_dapper.ExecuteSql(sql))
+            {
+                return Ok();
+            }
+
+            throw new Exception("Failed to delete post");
+        }
+
     }
 }

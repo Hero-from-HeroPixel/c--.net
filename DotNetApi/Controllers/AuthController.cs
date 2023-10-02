@@ -149,7 +149,7 @@ namespace DotnetAPI.Controllers
             });
         }
 
-        [HttpGet("refreshToken")]
+        [HttpGet("RefreshToken")]
         public string RefreshToken()
         {
             string sqlGetUserId = "SELECT UserId FROM TutorialAppSchema.Users WHERE userId = '" + User.FindFirst("userId")?.Value + "'";
