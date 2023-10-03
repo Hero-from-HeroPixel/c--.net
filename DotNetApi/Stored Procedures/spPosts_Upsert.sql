@@ -1,11 +1,6 @@
 USE DotNetCourseDatabase
 GO
 
-
--- EXECUTE TutorialAppSchema.spPosts_Get @PostId = 2, @UserId = 1003 
--- EXECUTE TutorialAppSchema.spPosts_Get @UserId = 1003, @SearchParam = 'second' 
--- EXECUTE TutorialAppSchema.spPosts_Get @PostId = 2
--- EXECUTE TutorialAppSchema.spPosts_Get
 CREATE OR ALTER PROCEDURE TutorialAppSchema.spPosts_Upsert
     @UserId INT,
     @PostTitle NVARCHAR(255),
