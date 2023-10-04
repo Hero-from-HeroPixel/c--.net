@@ -38,26 +38,44 @@ namespace DotNetApi.Data
             return dbConnection.Execute(sql);
         }
 
-        public bool ExecuteSqlWithParams(string sql, List<SqlParameter> parameters)
+        public bool ExecuteSqlWithParams(string sql, DynamicParameters parameters)
         {
 
-            SqlCommand commandWithParams = new(sql);
+            IDbConnection dbConnection = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+            return dbConnection.Execute(sql, parameters) > 0;
 
-            foreach (SqlParameter param in parameters)
-            {
-                commandWithParams.Parameters.Add(param);
-            }
+            // SqlCommand commandWithParams = new(sql);
 
-            SqlConnection dbConnection = new(_config.GetConnectionString("DefaultConnection"));
-            dbConnection.Open();
+            // foreach (SqlParameter param in parameters)
+            // {
+            //     commandWithParams.Parameters.Add(param);
+            // }
 
-            commandWithParams.Connection = dbConnection;
+            // SqlConnection dbConnection = new(_config.GetConnectionString("DefaultConnection"));
+            // dbConnection.Open();
 
-            int rowsAffected = commandWithParams.ExecuteNonQuery();
+            // commandWithParams.Connection = dbConnection;
 
-            dbConnection.Close();
+            // int rowsAffected = commandWithParams.ExecuteNonQuery();
 
-            return rowsAffected > 0;
+            // dbConnection.Close();
+
+            // return rowsAffected > 0;
+        }
+
+        public IEnumerable<T> LoadDataWithParams<T>(string sql, DynamicParameters parameters)
+        {
+            IDbConnection dbConnection = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+            return dbConnection.Query<T>(sql, parameters);
+
+        }
+
+        public T LoadDataSingleWithParams<T>(string sql, DynamicParameters parameters)
+
+        {
+            IDbConnection dbConnection = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+            return dbConnection.QuerySingle<T>(sql, parameters);
+
         }
     }
 }

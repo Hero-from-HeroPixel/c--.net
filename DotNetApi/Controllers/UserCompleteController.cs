@@ -40,7 +40,7 @@ public class UserCompleteController : ControllerBase
             parameters += ", @Active=" + isActive.ToString();
         }
 
-        sql += parameters[1..];
+        if (parameters.Length > 0) sql += parameters[1..];
 
         IEnumerable<UserComplete> users = _dapper.LoadData<UserComplete>(sql);
         return users;

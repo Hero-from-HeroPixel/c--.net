@@ -7,7 +7,7 @@ GO
 -- [PasswordSalt] 
 -- FROM TutorialAppSchema.Auth
 
-CREATE OR ALTER PROCEDURE spRegistration_Upsert 
+CREATE OR ALTER PROCEDURE TutorialAppSchema.spRegistration_Upsert 
     @Email NVARCHAR(50) ,
     @PasswordHash VARBINARY(MAX),
     @PasswordSalt VARBINARY(MAX)
