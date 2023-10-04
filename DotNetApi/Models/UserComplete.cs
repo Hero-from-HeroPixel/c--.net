@@ -1,6 +1,6 @@
 namespace DotNetApi.Models
 {
-    public partial class User
+    public partial class UserComplete
     {
         public int UserId { get; set; }
         public string FirstName { get; set; } = "";
@@ -8,6 +8,9 @@ namespace DotNetApi.Models
         public string Email { get; set; } = "";
         public string Gender { get; set; } = "";
         public bool Active { get; set; }
-
+        public string JobTitle { get; set; } = "";
+        public string Department { get; set; } = "";
+        public decimal Salary { get; set; }
+        public decimal AvgSalary { get; set; }
     }
 }
