@@ -101,8 +101,8 @@ namespace DotnetAPI.Controllers
             string sql = @" EXEC TutorialAppSchema.spPosts_Upsert ";
             DynamicParameters sqlParameters = new();
 
-            string body = "@UserId = @UserIdParam" +
-                            "@PostTitle = @PostTitleParam" +
+            string body = "@UserId = @UserIdParam," +
+                            "@PostTitle = @PostTitleParam," +
                             "@PostContent = @PostContentParam";
 
             sqlParameters.Add("@UserIdParam", this.User.FindFirst("userId")?.Value, DbType.Int32);
