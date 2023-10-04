@@ -1,5 +1,4 @@
 using System.Data;
-using System.Security.Cryptography;
 using Dapper;
 using DotnetAPI.Dto;
 using DotnetAPI.Helpers;
@@ -7,7 +6,6 @@ using DotNetApi;
 using DotNetApi.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 
 namespace DotnetAPI.Controllers
 {

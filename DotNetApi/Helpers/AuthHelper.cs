@@ -6,9 +6,7 @@ using System.Text;
 using Dapper;
 using DotNetApi;
 using DotNetApi.Data;
-using DotNetApi.Models;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 
 namespace DotnetAPI.Helpers
