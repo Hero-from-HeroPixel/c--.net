@@ -9,23 +9,23 @@ namespace DotnetAPI.Controllers;
 [Route("[controller]")]
 public class UserCompleteController : ControllerBase
 {
-    DataContextDapper _dapper;
+    readonly DataContextDapper _dapper;
     public UserCompleteController(IConfiguration config)
     {
         _dapper = new DataContextDapper(config);
     }
 
-    // [HttpGet("TestConnection")]
-    // public DateTime TestConnection()
-    // {
-    //     return _dapper.LoadDataSingle<DateTime>("SELECT GETDATE()");
-    // }
+    [HttpGet("TestConnection")]
+    public DateTime TestConnection()
+    {
+        return _dapper.LoadDataSingle<DateTime>("SELECT GETDATE()");
+    }
 
     // public IEnumerable<User> GetUsers()
 
     [HttpGet("GetUsers/{userId}/{isActive}")]
     /************** FizzBuzz pattern */
-    public IEnumerable<UserComplete> GetUsers(int userId, bool isActive)
+    public IEnumerable<UserComplete> GetUsers(bool isActive, int userId = 0)
     {
         string sql = "EXEC TutorialAppSchema.spUsers_Get";
         string parameters = "";
@@ -41,6 +41,7 @@ public class UserCompleteController : ControllerBase
         }
 
         sql += parameters[1..];
+
         IEnumerable<UserComplete> users = _dapper.LoadData<UserComplete>(sql);
         return users;
     }
@@ -91,7 +92,7 @@ public class UserCompleteController : ControllerBase
     [HttpPost("UpsertUser")]
     public IActionResult UpsertUser(UserComplete user)
     {
-        string sql = @" EXECUTE TutorialAppSchema.spUser_Upsert " +
+        string sql = @" EXEC TutorialAppSchema.spUser_Upsert " +
                         "@FirstName=" + user.FirstName + "," +
                         "@LastName=" + user.LastName + "," +
                         "@Email=" + user.Email + "," +
@@ -114,7 +115,7 @@ public class UserCompleteController : ControllerBase
     [HttpDelete("DeleteUser/{userId}")]
     public IActionResult DeleteUser(int userId)
     {
-        string sql = @"EXECUTE TutorialAppSchema.spUser_Delete @" + userId.ToString();
+        string sql = @"EXEC TutorialAppSchema.spUser_Delete @UserId=" + userId.ToString();
 
         if (_dapper.ExecuteSql(sql))
         {
@@ -237,19 +238,19 @@ public class UserCompleteController : ControllerBase
     //     throw new Exception("Deleting User Job Info failed on save");
     // }
 
-    [HttpDelete("UserJobInfo/{userId}")]
-    public IActionResult DeleteUserJobInfo(int userId)
-    {
-        string sql = @"
-            DELETE FROM TutorialAppSchema.UserJobInfo 
-                WHERE UserId = " + userId.ToString();
+    // [HttpDelete("UserJobInfo/{userId}")]
+    // public IActionResult DeleteUserJobInfo(int userId)
+    // {
+    //     string sql = @"
+    //         DELETE FROM TutorialAppSchema.UserJobInfo 
+    //             WHERE UserId = " + userId.ToString();
 
 
-        if (_dapper.ExecuteSql(sql))
-        {
-            return Ok();
-        }
+    //     if (_dapper.ExecuteSql(sql))
+    //     {
+    //         return Ok();
+    //     }
 
-        throw new Exception("Failed to Delete User");
-    }
+    //     throw new Exception("Failed to Delete User");
+    // }
 }

@@ -17,61 +17,65 @@ namespace DotnetAPI.Controllers
             _dapper = new DataContextDapper(config);
         }
 
-        [HttpGet("Posts")]
-        public IEnumerable<Post> GetPosts()
+        [AllowAnonymous]
+        [HttpGet("Posts/{postId}/{userId}/{searchParam}")]
+        public IEnumerable<Post> GetPosts(int postId = 0, int userId = 0, string searchParam = "NONE")
         {
-            string sql = @" SELECT 
-                [PostId],
-                [UserId],
-                [PostTitle],
-                [PostContent],
-                [PostCreated],
-                [PostUpdated] 
-                FROM [TutorialAppSchema].[Posts]";
-            return _dapper.LoadData<Post>(sql);
-        }
-        [HttpGet("Posts/{postId}")]
-        public Post GetSinglePost(int postId)
-        {
-            string sql = @" SELECT 
-                [PostId],
-                [UserId],
-                [PostTitle],
-                [PostContent],
-                [PostCreated],
-                [PostUpdated] 
-                FROM [TutorialAppSchema].[Posts]
-                WHERE PostId = '" + postId + "'";
-            return _dapper.LoadDataSingle<Post>(sql);
-        }
+            string sql = @"EXEC TutorialAppSchema.spPosts_Get ";
+            string parameters = "";
 
-        [HttpGet("Posts/PostByUser/{userId}")]
-        public IEnumerable<Post> GetPostsByUser(int userId)
-        {
-            string sql = @" SELECT 
-                [PostId],
-                [UserId],
-                [PostTitle],
-                [PostContent],
-                [PostCreated],
-                [PostUpdated] 
-                FROM [TutorialAppSchema].[Posts]
-                WHERE UserId = '" + userId + "'";
+            if (postId != 0)
+            {
+                parameters += ", @PostId=" + postId.ToString();
+            }
+
+            if (userId != 0)
+            {
+                parameters += ", @UserId=" + userId.ToString();
+            }
+
+            if (searchParam != "NONE")
+            {
+                parameters += ", @SearchParam='" + searchParam + "'";
+            }
+
+            if (parameters.Length > 0) sql += parameters[1..]; //remove first comma
             return _dapper.LoadData<Post>(sql);
         }
+        // [HttpGet("Posts/{postId}")]
+        // public Post GetSinglePost(int postId)
+        // {
+        //     string sql = @" SELECT 
+        //         [PostId],
+        //         [UserId],
+        //         [PostTitle],
+        //         [PostContent],
+        //         [PostCreated],
+        //         [PostUpdated] 
+        //         FROM [TutorialAppSchema].[Posts]
+        //         WHERE PostId = '" + postId + "'";
+        //     return _dapper.LoadDataSingle<Post>(sql);
+        // }
+
+        // [HttpGet("Posts/PostByUser/{userId}")]
+        // public IEnumerable<Post> GetPostsByUser(int userId)
+        // {
+        //     string sql = @" SELECT 
+        //         [PostId],
+        //         [UserId],
+        //         [PostTitle],
+        //         [PostContent],
+        //         [PostCreated],
+        //         [PostUpdated] 
+        //         FROM [TutorialAppSchema].[Posts]
+        //         WHERE UserId = '" + userId + "'";
+        //     return _dapper.LoadData<Post>(sql);
+        // }
 
         [HttpGet("MyPosts")]
-        public IEnumerable<Post> GetMyPosts(int userId)
+        public IEnumerable<Post> GetMyPosts()
         {
-            string sql = @" SELECT 
-                [PostId],
-                [UserId],
-                [PostTitle],
-                [PostContent],
-                [PostCreated],
-                [PostUpdated] 
-                FROM [TutorialAppSchema].[Posts]
-                WHERE PostId =" + this.User.FindFirst("userId")?.Value;
+            string sql = @" EXEC TutorialAppSchema.spPosts_Get @UserId=" + this.User.FindFirst("userId")?.Value;
 
 
             return _dapper.LoadData<Post>(sql);
@@ -137,13 +141,13 @@ namespace DotnetAPI.Controllers
             throw new Exception("Failed to delete post");
         }
 
-        [HttpGet("PostBySearch/{SearchParam}")]
-        public IEnumerable<Post> PostBySearch(string SearchParam)
-        {
-            string sql = @" SELECT * FROM [TutorialAppSchema].[Posts]
-                            WHERE PostTitle LIKE '%" + SearchParam + " %'" +
-                            "OR PostContent LIKE '%" + SearchParam + " %'";
-            return _dapper.LoadData<Post>(sql);
-        }
+        // [HttpGet("PostBySearch/{SearchParam}")]
+        // public IEnumerable<Post> PostBySearch(string SearchParam)
+        // {
+        //     string sql = @" SELECT * FROM [TutorialAppSchema].[Posts]
+        //                     WHERE PostTitle LIKE '%" + SearchParam + " %'" +
+        //                     "OR PostContent LIKE '%" + SearchParam + " %'";
+        //     return _dapper.LoadData<Post>(sql);
+        // }
     }
 }
