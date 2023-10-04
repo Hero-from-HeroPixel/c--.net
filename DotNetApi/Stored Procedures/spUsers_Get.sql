@@ -2,7 +2,7 @@ USE DotNetCourseDatabase
 GO
 
 -- CREATE PROCEDURE TutorialAppSchema.spUsers_Get
--- EXEC TutorialAppSchema.spUsers_Get @UserId=4, @Active=True
+-- EXEC TutorialAppSchema.spUsers_Get
 
 CREATE OR ALTER PROCEDURE TutorialAppSchema.spUsers_Get
       @UserId INT = NULL,

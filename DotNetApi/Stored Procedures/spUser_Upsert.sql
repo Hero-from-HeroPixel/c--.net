@@ -66,9 +66,9 @@ BEGIN
 				SET 
 				FirstName = @FirstName,
 				LastName = @LastName,
-				Email = @LastName,
+				Email = @Email,
 				Gender = @Gender,
-				Active = @LastName
+				Active = @Active
 			WHERE UserId = @UserId
 
 			UPDATE TutorialAppSchema.UserSalary 
