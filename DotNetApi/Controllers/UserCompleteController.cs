@@ -1,19 +1,26 @@
 using System.Data;
 using Dapper;
+using DotnetAPI.Helpers;
 using DotNetApi.Data;
 using DotNetApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DotnetAPI.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class UserCompleteController : ControllerBase
 {
-    readonly DataContextDapper _dapper;
+    private readonly DataContextDapper _dapper;
+
+    private readonly ReusableSql _reusableSql;
+
     public UserCompleteController(IConfiguration config)
     {
         _dapper = new DataContextDapper(config);
+        _reusableSql = new(config);
     }
 
     [HttpGet("TestConnection")]
@@ -97,40 +104,40 @@ public class UserCompleteController : ControllerBase
     [HttpPost("UpsertUser")]
     public IActionResult UpsertUser(UserComplete user)
     {
-        string sql = @" EXEC TutorialAppSchema.spUser_Upsert
-                        @FirstName=@FirstNameParam , 
-                        @LastName=@LastNameParam , 
-                        @Email=@EmailParam ,
-                        @Gender=@GenderParam ,
-                        @Active=@ActiveParam ,
-                        @JobTitle=@JobTitleParam,
-                        @JobDepartment=@DepartmentParam ,
-                        @Salary=@SalaryParam ,
-                        @UserId=@UserIdParam ";
 
-        DynamicParameters sqlParameters = new();
-
-        sqlParameters.Add("@FirstNameParam", user.FirstName, DbType.String);
-        sqlParameters.Add("@LastNameParam", user.LastName, DbType.String);
-        sqlParameters.Add("@EmailParam", user.Email, DbType.String);
-        sqlParameters.Add("@GenderParam", user.Gender, DbType.String);
-        sqlParameters.Add("@ActiveParam", user.Active, DbType.Boolean);
-        sqlParameters.Add("@JobTitleParam", user.JobTitle, DbType.String);
-        sqlParameters.Add("@DepartmentParam", user.Department, DbType.String);
-        sqlParameters.Add("@SalaryParam", user.Salary, DbType.Decimal);
-        sqlParameters.Add("@UserIdParam", user.UserId, DbType.Int32);
-
-        //To Do [{param1,type} , {param2,type} , {param3,type} , {param4,type} , etc.] for loop, and assign each param with format ("@" + param + "Param",object value = null param , DbType type)
-
-        //Pros, Can map js object into params easier.
-
-
-        if (_dapper.ExecuteSqlWithParams(sql, sqlParameters))
+        if (_reusableSql.UpsertUser(user))
         {
             return Ok();
         }
 
         throw new Exception("Failed to Add User");
+        // string sql = @" EXEC TutorialAppSchema.spUser_Upsert
+        //                 @FirstName=@FirstNameParam , 
+        //                 @LastName=@LastNameParam , 
+        //                 @Email=@EmailParam ,
+        //                 @Gender=@GenderParam ,
+        //                 @Active=@ActiveParam ,
+        //                 @JobTitle=@JobTitleParam,
+        //                 @JobDepartment=@DepartmentParam ,
+        //                 @Salary=@SalaryParam ,
+        //                 @UserId=@UserIdParam ";
+
+        // DynamicParameters sqlParameters = new();
+
+        // sqlParameters.Add("@FirstNameParam", user.FirstName, DbType.String);
+        // sqlParameters.Add("@LastNameParam", user.LastName, DbType.String);
+        // sqlParameters.Add("@EmailParam", user.Email, DbType.String);
+        // sqlParameters.Add("@GenderParam", user.Gender, DbType.String);
+        // sqlParameters.Add("@ActiveParam", user.Active, DbType.Boolean);
+        // sqlParameters.Add("@JobTitleParam", user.JobTitle, DbType.String);
+        // sqlParameters.Add("@DepartmentParam", user.Department, DbType.String);
+        // sqlParameters.Add("@SalaryParam", user.Salary, DbType.Decimal);
+        // sqlParameters.Add("@UserIdParam", user.UserId, DbType.Int32);
+
+        //To Do [{param1,type} , {param2,type} , {param3,type} , {param4,type} , etc.] for loop, and assign each param with format ("@" + param + "Param",object value = null param , DbType type)
+
+        //Pros, Can map js object into params easier.
+
     }
 
     [HttpDelete("DeleteUser/{userId}")]

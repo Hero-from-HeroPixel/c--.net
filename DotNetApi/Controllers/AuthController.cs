@@ -1,9 +1,11 @@
 using System.Data;
+using AutoMapper;
 using Dapper;
 using DotnetAPI.Dto;
 using DotnetAPI.Helpers;
 using DotNetApi;
 using DotNetApi.Data;
+using DotNetApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,14 +19,20 @@ namespace DotnetAPI.Controllers
     {
 
         private readonly DataContextDapper _dapper;
-
         private readonly AuthHelper _authHelper;
+        private readonly ReusableSql _reusableSql;
+        private readonly IMapper _mapper;
+
 
         public AuthController(IConfiguration config)
         {
             _dapper = new DataContextDapper(config);
-
             _authHelper = new AuthHelper(config);
+            _reusableSql = new(config);
+            _mapper = new Mapper(new MapperConfiguration((cfg) =>
+            {
+                cfg.CreateMap<UserRegisterDto, UserComplete>();
+            }));
         }
 
         [AllowAnonymous]
@@ -50,19 +58,19 @@ namespace DotnetAPI.Controllers
 
                     if (_authHelper.SetPassword(userForSetPassword))
                     {
+                        UserComplete userComplete = _mapper.Map<UserComplete>(user);
+                        userComplete.Active = true;
+                        // string sqlAddUser = @" EXEC TutorialAppSchema.spUser_Upsert " +
+                        // "@FirstName='" + user.FirstName + "'," +
+                        // "@LastName='" + user.LastName + "'," +
+                        // "@Email='" + user.Email + "'," +
+                        // "@Gender='" + user.Gender + "'," +
+                        // "@JobTitle='" + user.JobTitle + "'," +
+                        // "@JobDepartment='" + user.Department + "'," +
+                        // "@Salary=" + user.Salary + "," +
+                        // "@Active=1";
 
-                        string sqlAddUser = @" EXEC TutorialAppSchema.spUser_Upsert " +
-                        "@FirstName='" + user.FirstName + "'," +
-                        "@LastName='" + user.LastName + "'," +
-                        "@Email='" + user.Email + "'," +
-                        "@Gender='" + user.Gender + "'," +
-                        "@JobTitle='" + user.JobTitle + "'," +
-                        "@JobDepartment='" + user.Department + "'," +
-                        "@Salary=" + user.Salary + "," +
-                        "@Active=1";
-
-                        Console.WriteLine(sqlAddUser);
-                        if (_dapper.ExecuteSql(sqlAddUser))
+                        if (_reusableSql.UpsertUser(userComplete))
                         {
                             return Ok();
                         }
